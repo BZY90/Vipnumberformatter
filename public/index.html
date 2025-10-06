@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIP Number Formatter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 90%;
+      max-width: 500px;
+      margin-top: 40px;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(0,0,0,0.7);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+      text-align: center;
+    }
+    h1 { color: cyan; margin-bottom: 20px; }
+    textarea {
+      width: 100%;
+      height: 120px;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: none;
+      outline: none;
+      resize: none;
+      font-size: 14px;
+    }
+    #counter { font-size: 14px; margin-bottom: 15px; color: #38bdf8; font-weight: bold; }
+    #notificationBar {
+      display: none;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      font-weight: bold;
+      background: linear-gradient(135deg, gold, #ffec8b, gold);
+      color: #222;
+    }
+    button {
+      width: 100%; padding: 12px; margin: 8px 0;
+      border: none; border-radius: 8px; cursor: pointer;
+      font-weight: bold; font-size: 16px;
+    }
+    .btn-pink { background: #ec4899; color: white; }
+    .btn-purple { background: #8b5cf6; color: white; }
+    .btn-blue { background: #06b6d4; color: white; }
+    .btn-red { background: #ef4444; color: white; }
+    .btn-pink:hover { background: #db2777; }
+    .btn-purple:hover { background: #7c3aed; }
+    .btn-blue:hover { background: #0891b2; }
+    .btn-red:hover { background: #dc2626; }
+    #output {
+      margin-top: 20px; text-align: left; padding: 10px;
+      background: #0f172a; border-radius: 10px;
+      min-height: 120px; font-size: 14px;
+      white-space: pre-wrap; overflow-y: auto;
+    }
+    /* Credit */
+    .credit {
+      margin-top: 40px; font-size: 26px; font-weight: bold;
+      color: blue; text-align: center; position: relative; display: inline-block;
+    }
+    .credit::after {
+      content: ""; display: block; margin: 8px auto 0;
+      width: 100px; height: 4px; border-radius: 4px;
+      background: linear-gradient(90deg, gold, #fff8b0, gold);
+      animation: glowLine 3s linear infinite;
+    }
+    @keyframes glowLine {
+      0% { width: 40px; opacity: 0.6; }
+      50% { width: 120px; opacity: 1; }
+      100% { width: 40px; opacity: 0.6; }
+    }
+    /* Toast */
+    #toast {
+      visibility: hidden; min-width: 240px;
+      color: #222; text-align: center;
+      border-radius: 12px; padding: 14px;
+      position: fixed; bottom: 30px; left: -300px;
+      z-index: 1000; font-size: 15px; font-weight: bold;
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    #toast.show {
+      visibility: visible; opacity: 1;
+      animation: slideIn 0.6s ease forwards, fadeOut 0.6s ease 2s forwards;
+    }
+    @keyframes slideIn {
+      from { left: -300px; opacity: 0; }
+      to { left: 50%; transform: translateX(-50%); opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; bottom: 50px; }
+      to { opacity: 0; bottom: 20px; }
+    }
+    /* Login */
+    #loginGate { margin-top: 150px; width: 300px; text-align: center; }
+    #doneMessage { display: none; margin-top: 15px; font-size: 18px; font-weight: bold; color: #22c55e; }
+    .bzy {
+      margin-top: 30px;
+      font-size: 28px;
+      font-weight: bold;
+      color: black;
+    }
+    input[type="password"] {
+      padding: 12px; border-radius: 8px; border: none;
+      margin: 10px 0; width: 100%; font-size: 16px;
+    }
+    #mainContent { display: none; }
+    #mainContent.show { display: block; animation: fadeIn 1s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Security -->
+  <div id="loginGate" class="container">
+    <h2>🔒 Secure Access</h2>
+    <input type="password" id="securityKey" placeholder="Enter Security Key">
+    <button class="btn-blue" onclick="checkKey()">Unlock</button>
+    <div id="doneMessage">✅ DONE</div>
+    <div class="bzy">BZY</div>
+  </div>
+
+  <!-- Main -->
+  <div id="mainContent">
+    <div class="container">
+      <h1>VIP Number Formatter</h1>
+      <textarea id="numbersInput" placeholder="একাধিক নম্বর লিখুন, প্রতি লাইনে একটি..."></textarea>
+      <div id="counter">Total Numbers: 0</div>
+      <button class="btn-pink" onclick="addPlus()">ADD (+)</button>
+      <button class="btn-purple" onclick="addLink()">ADD LINK</button>
+      <div id="notificationBar"></div>
+      <div id="output"></div>
+      <button class="btn-blue" onclick="copyAll()">Copy All</button>
+      <button class="btn-red" onclick="logout()">Logout</button>
+    </div>
+    <div class="credit">©FRKBZY</div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast">✅ Copied Successfully!</div>
+
+  <script>
+    const SECRET_KEYS = ["frk", "bayezid", "songsod"];
+    let currentKey = null;
+
+    window.onload = function() {
+      if(localStorage.getItem("accessGranted") === "true"){
+        currentKey = localStorage.getItem("currentKey");
+        showMainContent();
+      }
+      if(localStorage.getItem("logoutFlag") === "true"){
+        showToast("🔐 Welcome Back! Please Login Again", "gold");
+        localStorage.removeItem("logoutFlag");
+      }
+    }
+
+    function checkKey() {
+      const input = document.getElementById("securityKey").value.trim().toLowerCase();
+      if(SECRET_KEYS.includes(input)){
+        currentKey = input;
+        document.getElementById("doneMessage").style.display = "block";
+        localStorage.setItem("accessGranted", "true");
+        localStorage.setItem("currentKey", currentKey);
+        setTimeout(() => { showMainContent(); }, 1200);
+      } else {
+        alert("❌ Wrong Key!");
+      }
+    }
+
+    function showMainContent(){
+      document.getElementById("loginGate").style.display = "none";
+      document.getElementById("mainContent").classList.add("show");
+
+      if(currentKey !== "bayezid"){
+        setTimeout(() => {
+          showToast("⏳ 5s left! You will be logged out soon…", "orange");
+        }, 15000);
+        setTimeout(() => {
+          logout(true);
+          showToast("⏳ Session expired! Please login again.", "red");
+        }, 20000);
+      }
+    }
+
+    function logout(auto=false){
+      localStorage.removeItem("accessGranted");
+      localStorage.removeItem("currentKey");
+      if(auto || !auto){ localStorage.setItem("logoutFlag","true"); }
+      location.reload();
+    }
+
+    document.getElementById("numbersInput").addEventListener("input", () => {
+      const input = document.getElementById("numbersInput").value.trim();
+      const numbers = input.length ? input.split(/\s+/) : [];
+      document.getElementById("counter").textContent = "Total Numbers: " + numbers.length;
+    });
+
+    function addPlus() {
+      const input = document.getElementById("numbersInput").value.trim();
+      const numbers = input.split(/\s+/).filter(n => n);
+      let result = numbers.map(n => "+" + n).join("\n");
+      document.getElementById("output").textContent = result;
+      document.getElementById("notificationBar").textContent = "➕ Added + to " + numbers.length + " numbers";
+      document.getElementById("notificationBar").style.display = "block";
+      showToast("➕ Added + to " + numbers.length + " numbers", "gold");
+    }
+
+    function addLink() {
+      const input = document.getElementById("numbersInput").value.trim();
+      const numbers = input.split(/\s+/).filter(n => n);
+      let result = numbers.map(n => "t.me/+" + n).join("\n");
+      document.getElementById("output").textContent = result;
+      document.getElementById("notificationBar").textContent = "🔗 Added t.me/+ to " + numbers.length + " numbers";
+      document.getElementById("notificationBar").style.display = "block";
+      showToast("🔗 Added t.me/+ to " + numbers.length + " numbers", "gold");
+    }
+
+    function copyAll() {
+      const text = document.getElementById("output").textContent;
+      if(text.length === 0){
+        showToast("⚠️ Output empty!", "orange");
+        return;
+      }
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("✅ Copied " + text.split("\n").length + " numbers!", "gold");
+      });
+    }
+
+    function showToast(message, type="gold"){
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.style.background = type === "orange"
+        ? "linear-gradient(135deg, orange, #ffcc80, orange)"
+        : type === "red"
+        ? "linear-gradient(135deg, #ff4444, #ff9999, #ff4444)"
+        : "linear-gradient(135deg, gold, #ffec8b, gold)";
+      toast.className = "show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+    }
+  </script>
+</body>
+</html>
